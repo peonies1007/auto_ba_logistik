@@ -51,6 +51,7 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
 def handle_toggle(v_dasar, frame_kec, frame_ass):
     frame_kec.grid_remove()
     frame_ass.grid_remove()
+    # Sekarang kita gunakan row=1 di dalam kontainer kirinya
     if v_dasar.get() == "kecamatan":
         frame_kec.grid(row=1, column=0, columnspan=2, sticky="w", padx=10, pady=5)
     else:
