@@ -2,12 +2,13 @@ import tkinter as tk
 from date_picker import buat_date_picker
 import components as comp
 import logic
+from data_wilayah import DATA_KECAMATAN
 
 
 def main():
     root = tk.Tk()
     root.title("Input Data Logistik")
-    root.geometry("600x750")  # Ukuran diperbesar
+    root.geometry("600x850")
 
     # --- BAGIAN 1 & 2 (Tetap Sama) ---
     tk.Label(root, text="Dasar Surat:", font=("Arial", 10, "bold")).grid(
@@ -54,23 +55,60 @@ def main():
     # --- BAGIAN 3: FIELD UMUM ---
     frame_umum = tk.Frame(root)
     frame_umum.grid(row=2, column=0, columnspan=2, pady=10, sticky="w")
+
     entri = {}
+    # Label Data Distribusi
+    tk.Label(frame_umum, text="Data Distribusi:", font=("Arial", 10, "bold")).grid(
+        row=0, column=0, padx=10, pady=5, sticky="w"
+    )
+    # Tanggal & Bencana
     tk.Label(frame_umum, text="Tanggal").grid(
-        row=0, column=0, sticky="w", padx=10, pady=5
+        row=1, column=0, sticky="w", padx=10, pady=2
     )
     entri["tanggal"] = buat_date_picker(frame_umum)
-    entri["tanggal"].grid(row=0, column=1, padx=10, pady=5)
+    entri["tanggal"].grid(row=1, column=1, padx=10, pady=2)
+
     entri["bencana"] = comp.create_label_combobox(
         frame_umum,
         "Bencana",
-        1,
+        2,
         ["Angin Kencang", "Tanah Longsor", "Banjir", "Kebakaran Rumah"],
     )
-    entri["alamat"] = comp.create_label_entry(frame_umum, "Alamat", 2)
+
+    # --- SETUP DROPDOWN WILAYAH ---
+    list_nama_kecamatan = [d["kecamatan"] for d in DATA_KECAMATAN]
+
+    # Dropdown Kecamatan
+    entri["alamat_kec"] = comp.create_label_combobox(
+        frame_umum, "  - Kecamatan", 3, list_nama_kecamatan
+    )
+
+    # Dropdown Desa (Awalnya kosong, akan diisi saat Kecamatan dipilih)
+    entri["alamat_kel"] = comp.create_label_combobox(
+        frame_umum, "  - Kelurahan/Desa", 4, []
+    )
+
+    # Event Binding: Saat Kecamatan berubah, update Desa
+    entri["alamat_kec"].bind(
+        "<<ComboboxSelected>>",
+        lambda event: logic.handle_kecamatan_change(
+            event, entri["alamat_kec"], entri["alamat_kel"], DATA_KECAMATAN
+        ),
+    )
+
+    # Input Dukuh (Tetap manual)
+    entri["alamat_dukuh"] = comp.create_label_entry(frame_umum, "  - Dukuh/Kampung", 5)
+
+    # Trigger pengisian desa pertama kali agar tidak kosong saat start
+    logic.handle_kecamatan_change(
+        None, entri["alamat_kec"], entri["alamat_kel"], DATA_KECAMATAN
+    )
+
+    # Keterangan (Pindah ke baris 6 karena alamat memakan 3 baris)
     entri["keterangan"] = comp.create_label_combobox(
         frame_umum,
         "Keterangan",
-        3,
+        6,
         ["APBN", "APBD I", "APBD II", "Hibah APBN", "Hibah APBD"],
     )
 

@@ -10,10 +10,19 @@ def create_label_entry(parent, label_text, row):
 
 
 def create_label_combobox(parent, label_text, row, values):
-    tk.Label(parent, text=label_text).grid(row=row, column=0, sticky="w", pady=5)
+    """Membuat Label dan Combobox Readonly"""
+    tk.Label(parent, text=label_text).grid(
+        row=row, column=0, sticky="w", pady=5, padx=10
+    )
     cb = ttk.Combobox(parent, values=values, width=27, state="readonly")
     cb.grid(row=row, column=1, padx=10, pady=5)
-    cb.set(values[0])
+
+    # Hanya set nilai default jika list 'values' tidak kosong
+    if values:
+        cb.set(values[0])
+    else:
+        cb.set("")  # Kosongkan jika tidak ada data
+
     return cb
 
 
