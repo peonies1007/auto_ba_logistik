@@ -27,17 +27,26 @@ def create_label_combobox(parent, label_text, row, values):
 
 
 def create_logistik_row(parent, row_index, on_delete):
-    """
-    Membuat satu baris logistik dengan tombol hapus spesifik.
-    on_delete: fungsi yang dipanggil saat tombol hapus diklik.
-    """
-    # Container untuk menyimpan widget agar mudah dikelola
+    """Membuat satu baris logistik dengan Spinbox untuk Volume"""
     row_widgets = {}
 
     uraian = tk.Entry(parent, width=20)
     uraian.grid(row=row_index, column=0, padx=2, pady=2)
 
-    volume = tk.Entry(parent, width=8)
+    # Menggunakan Spinbox untuk Volume
+    # from_ dan to menentukan rentang angka
+    # increment menentukan lompatan angka setiap klik
+    def hanya_angka(P):
+        if P == "" or P.isdigit():
+            return True
+        return False
+
+    vcmd = (parent.register(hanya_angka), "%P")
+
+    volume = tk.Spinbox(
+        parent, from_=0, to=9999, width=7, validate="key", validatecommand=vcmd
+    )
+
     volume.grid(row=row_index, column=1, padx=2, pady=2)
 
     satuan = tk.Entry(parent, width=10)
@@ -46,7 +55,7 @@ def create_logistik_row(parent, row_index, on_delete):
     keterangan = tk.Entry(parent, width=15)
     keterangan.grid(row=row_index, column=3, padx=2, pady=2)
 
-    # Tombol Hapus Baris Ini
+    # Tombol Hapus Baris
     btn_hapus = tk.Button(
         parent,
         text="X",
