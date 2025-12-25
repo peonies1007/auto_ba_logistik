@@ -3,6 +3,22 @@ import datetime
 from docxtpl import DocxTemplate
 from docx import Document
 import os
+from docxcompose.composer import Composer  # Tambahkan ini
+
+bulan_nama = [
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+]
 
 
 def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
@@ -67,13 +83,20 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
     else:
         # Ambil tanggal assessment dengan get_date() juga
         tgl_ass_obj = entri_ass["tgl_ass"].get_date()
-        txt_dasar = f"Hasil Assessment Tanggal {tgl_ass_obj.strftime('%d/%m/%Y')}"
+        hari = tgl_ass_obj.day
+        bulan = bulan_nama[tgl_ass_obj.month - 1]
+        tahun = tgl_ass_obj.year
+
+        tgl_ass_formatted = f"{hari} {bulan} {tahun}"
+
+        # 4. Masukkan ke teks dasar surat
+        txt_dasar = f"Hasil Assessment Tanggal {tgl_ass_formatted}"
 
     # Data Umum sesuai template [cite: 13, 30, 47, 64, 83, 100]
     data_umum = {
         **waktu,  # Memasukkan hari, tanggal, bulan, tahun, tanggal_lengkap
         "bencana": entri["bencana"].get(),
-        "alamat_string": f"Desa {entri['alamat_kel'].get()}, Kec. {entri['alamat_kec'].get()}",
+        "alamat_string": f"{entri['alamat_kel'].get()}, Kec. {entri['alamat_kec'].get()}",
         "alamat_kec": entri["alamat_kec"].get(),
         "dasar_surat_text": txt_dasar,
     }
@@ -119,7 +142,7 @@ def handle_kecamatan_change(event, cb_kecamatan, cb_desa, data_wilayah):
     for item in data_wilayah:
         if item["kecamatan"] == kecamatan_terpilih:
             # Gabungkan Nama + Status (Contoh: "Sine (Kelurahan)")
-            desa_list = [f"{d['nama']} ({d['status']})" for d in item["daftar_wilayah"]]
+            desa_list = [f"{d['status']} {d['nama']}" for d in item["daftar_wilayah"]]
             break
 
     # Masukkan list baru ke combobox desa
@@ -130,30 +153,43 @@ def handle_kecamatan_change(event, cb_kecamatan, cb_desa, data_wilayah):
         cb_desa.set("")
 
 
+def angka_ke_kata(n):
+    bilangan = [
+        "",
+        "Satu",
+        "Dua",
+        "Tiga",
+        "Empat",
+        "Lima",
+        "Enam",
+        "Tujuh",
+        "Delapan",
+        "Sembilan",
+        "Sepuluh",
+        "Sebelas",
+    ]
+    if n < 12:
+        return bilangan[n]
+    elif n < 20:
+        return bilangan[n - 10] + " Belas"
+    elif n < 100:
+        return bilangan[n // 10] + " Puluh " + bilangan[n % 10]
+    elif n < 200:
+        return "Seratus " + angka_ke_kata(n - 100)
+    # n untuk tanggal maksimal hanya sampai 31, jadi logika di atas sudah cukup
+    return str(n)
+
+
 def get_indonesia_date(date_str):
     """Konversi dd/mm/yyyy ke format tanggal, hari, bulan Indonesia"""
     hari_nama = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
-    bulan_nama = [
-        "Januari",
-        "Februari",
-        "Maret",
-        "April",
-        "Mei",
-        "Juni",
-        "Juli",
-        "Agustus",
-        "September",
-        "Oktober",
-        "November",
-        "Desember",
-    ]
 
     d, m, y = map(int, date_str.split("/"))
     dt = datetime.date(y, m, d)
 
     return {
         "hari": hari_nama[dt.weekday()],
-        "tanggal": d,
+        "tanggal": angka_ke_kata(d).strip(),
         "bulan": bulan_nama[m - 1],
         "tahun": y,
         "tanggal_lengkap": f"{d} {bulan_nama[m - 1]} {y}",
@@ -169,7 +205,7 @@ def generate_word_output(data_umum, list_logistik):
             grouped_logistik[ket] = []
         grouped_logistik[ket].append(item)
 
-    # 2. Render Halaman Pertama (CORE) [cite: 53, 55, 66]
+    # 2. Render Halaman Pertama (CORE)
     context_core = {
         "hari": data_umum["hari"],
         "tanggal": data_umum["tanggal"],
@@ -185,15 +221,17 @@ def generate_word_output(data_umum, list_logistik):
     doc_main_tpl.render(context_core)
     doc_main_tpl.save("temp_result.docx")
 
-    final_doc = Document("temp_result.docx")
+    # Gunakan Composer untuk mempertahankan format saat penggabungan
+    master_doc = Document("temp_result.docx")
+    composer = Composer(master_doc)
 
-    # 3. Tambahkan Halaman BAST per Sumber Dana [cite: 15, 32, 49, 85, 102]
+    # 3. Tambahkan Halaman BAST per Sumber Dana
     for keterangan, items in grouped_logistik.items():
-        # Normalisasi nama file (Contoh: "APBD I" jadi "template_ba_logistik_APBD_I.docx")
         suffix = keterangan.replace(" ", "_")
         template_path = f"template_ba_logistik_{suffix}.docx"
 
         if os.path.exists(template_path):
+            # Render sub-template
             sub_tpl = DocxTemplate(template_path)
             context_bast = {
                 "hari": data_umum["hari"],
@@ -207,12 +245,23 @@ def generate_word_output(data_umum, list_logistik):
             sub_tpl.render(context_bast)
             sub_tpl.save("temp_sub.docx")
 
-            # Gabungkan konten [cite: 16, 33, 50, 86, 103]
-            sub_doc = Document("temp_sub.docx")
-            for element in sub_doc.element.body:
-                final_doc.element.body.append(element)
+            # Load dokumen sub yang baru dirender
+            doc_to_add = Document("temp_sub.docx")
+
+            # Tambahkan Page Break pada dokumen sumber sebelum digabung
+            # (Agar setiap BAST mulai di halaman baru)
+            master_doc.add_page_break()
+
+            # GABUNGKAN dengan Composer (Ini akan menjaga list Romawi tetap ada)
+            composer.append(doc_to_add)
 
     # 4. Simpan Final
     output_name = f"BA_LOGISTIK_{data_umum['tanggal']}_{data_umum['alamat_kec']}.docx"
-    final_doc.save(output_name)
+    composer.save(output_name)
+
+    # Bersihkan file sementara
+    for temp_file in ["temp_result.docx", "temp_sub.docx"]:
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
+
     return output_name

@@ -2,3 +2,5 @@ __pycache__
 item_template.json
 temp_result.docx
 temp_sub.docx
+.~lock*
+BA_LOGISTIK_*
