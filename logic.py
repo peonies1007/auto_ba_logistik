@@ -19,17 +19,20 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
     }
 
     # Ambil data dari tabel logistik yang dinamis
+    logistik_final = []
     for item in list_logistik:
-        u = item["uraian"].get()
-        v = item["volume"].get()
-        s = item["satuan"].get()
-        k = item["keterangan"].get()
-
-        # Hanya simpan jika uraian tidak kosong
-        if u.strip():
-            data["logistik"].append(
-                {"uraian": u, "volume": v, "satuan": s, "keterangan": k}
+        uraian_val = item["uraian"].get()
+        if uraian_val:  # Hanya simpan jika barang sudah dipilih
+            logistik_final.append(
+                {
+                    "keterangan": item["keterangan"].get(),
+                    "uraian": uraian_val,
+                    "volume": item["volume"].get(),
+                    "satuan": item["satuan"].get(),
+                }
             )
+
+    data["logistik"] = logistik_final
 
     if v_dasar.get() == "kecamatan":
         data.update(

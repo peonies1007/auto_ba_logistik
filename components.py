@@ -26,36 +26,58 @@ def create_label_combobox(parent, label_text, row, values):
     return cb
 
 
-def create_logistik_row(parent, row_index, on_delete):
-    """Membuat satu baris logistik dengan Spinbox untuk Volume"""
+def create_logistik_row(parent, row_index, on_delete, data_logistik):
     row_widgets = {}
 
-    uraian = tk.Entry(parent, width=20)
-    uraian.grid(row=row_index, column=0, padx=2, pady=2)
-
-    # Menggunakan Spinbox untuk Volume
-    # from_ dan to menentukan rentang angka
-    # increment menentukan lompatan angka setiap klik
-    def hanya_angka(P):
-        if P == "" or P.isdigit():
-            return True
-        return False
-
-    vcmd = (parent.register(hanya_angka), "%P")
-
-    volume = tk.Spinbox(
-        parent, from_=0, to=9999, width=7, validate="key", validatecommand=vcmd
+    # 1. Dropdown Keterangan (Sumber Dana)
+    keys_keterangan = list(data_logistik.keys())
+    keterangan = ttk.Combobox(
+        parent, values=keys_keterangan, width=15, state="readonly"
     )
+    keterangan.grid(row=row_index, column=0, padx=2, pady=2)
 
-    volume.grid(row=row_index, column=1, padx=2, pady=2)
+    # 2. Dropdown Uraian (Nama Barang)
+    uraian = ttk.Combobox(parent, width=25, state="readonly")
+    uraian.grid(row=row_index, column=1, padx=2, pady=2)
 
-    satuan = tk.Entry(parent, width=10)
-    satuan.grid(row=row_index, column=2, padx=2, pady=2)
+    # 3. Spinbox Volume
+    volume = tk.Spinbox(parent, from_=0, to=9999, width=7)
+    volume.grid(row=row_index, column=2, padx=2, pady=2)
 
-    keterangan = tk.Entry(parent, width=15)
-    keterangan.grid(row=row_index, column=3, padx=2, pady=2)
+    # 4. Entry Satuan (Readonly karena otomatis)
+    satuan = tk.Entry(parent, width=10, state="readonly")
+    satuan.grid(row=row_index, column=3, padx=2, pady=2)
 
-    # Tombol Hapus Baris
+    # --- LOGIKA INTERNAL BARIS ---
+
+    def on_keterangan_change(event):
+        """Update daftar barang berdasarkan sumber dana"""
+        sumber = keterangan.get()
+        if sumber in data_logistik:
+            daftar_barang = [item["nama_barang"] for item in data_logistik[sumber]]
+            uraian["values"] = daftar_barang
+            uraian.set("")
+            satuan.config(state="normal")
+            satuan.delete(0, tk.END)
+            satuan.config(state="readonly")
+
+    def on_uraian_change(event):
+        """Update satuan berdasarkan barang yang dipilih"""
+        sumber = keterangan.get()
+        barang_nama = uraian.get()
+        if sumber in data_logistik:
+            for item in data_logistik[sumber]:
+                if item["nama_barang"] == barang_nama:
+                    satuan.config(state="normal")
+                    satuan.delete(0, tk.END)
+                    satuan.insert(0, item["satuan"])
+                    satuan.config(state="readonly")
+                    break
+
+    keterangan.bind("<<ComboboxSelected>>", on_keterangan_change)
+    uraian.bind("<<ComboboxSelected>>", on_uraian_change)
+
+    # Tombol Hapus
     btn_hapus = tk.Button(
         parent,
         text="X",
@@ -66,11 +88,10 @@ def create_logistik_row(parent, row_index, on_delete):
     btn_hapus.grid(row=row_index, column=4, padx=5, pady=2)
 
     row_widgets = {
+        "keterangan": keterangan,
         "uraian": uraian,
         "volume": volume,
         "satuan": satuan,
-        "keterangan": keterangan,
         "btn_hapus": btn_hapus,
     }
-
     return row_widgets

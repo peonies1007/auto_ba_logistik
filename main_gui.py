@@ -3,6 +3,7 @@ from date_picker import buat_date_picker
 from data_wilayah import DATA_KECAMATAN
 import components as comp
 import logic
+from data_logistik import data_logistik  # Pastikan file ini ada
 
 
 def main():
@@ -113,10 +114,10 @@ def main():
     frame_tabel = tk.Frame(right_container)
     frame_tabel.grid(row=1, column=0, sticky="nw")
 
-    headers = ["Uraian", "Vol", "Satuan", "Keterangan", "Aksi"]
+    headers = ["Keterangan", "Uraian Barang", "Vol", "Satuan", "Aksi"]
     for i, h in enumerate(headers):
-        tk.Label(frame_tabel, text=h, font=("Arial", 9, "bold"), fg="#555").grid(
-            row=0, column=i, padx=5, pady=5
+        tk.Label(frame_tabel, text=h, font=("Arial", 9, "bold")).grid(
+            row=0, column=i, padx=5
         )
 
     rows_logistik = []
@@ -129,7 +130,10 @@ def main():
 
     def tambah_baris():
         idx = len(rows_logistik) + 1
-        new_row = comp.create_logistik_row(frame_tabel, idx, hapus_baris_spesifik)
+        # Tambahkan data_logistik sebagai argumen
+        new_row = comp.create_logistik_row(
+            frame_tabel, idx, hapus_baris_spesifik, data_logistik
+        )
         rows_logistik.append(new_row)
 
     # Tombol Tambah Baris Logistik
