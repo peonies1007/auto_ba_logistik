@@ -1,4 +1,8 @@
 from tkinter import messagebox
+import datetime
+from docxtpl import DocxTemplate
+from docx import Document
+import os
 
 
 def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
@@ -8,9 +12,18 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
     dukuh = entri["alamat_dukuh"].get()
     alamat_lengkap = f"Dukuh {dukuh}, Desa {kel}, Kec. {kec}"
 
+    # FIX: Gunakan get_date() untuk DateEntry
+    try:
+        obj_tanggal = entri["tanggal"].get_date()
+        # Konversi ke string dd/mm/yyyy untuk fungsi get_indonesia_date
+        str_tanggal = obj_tanggal.strftime("%d/%m/%Y")
+    except AttributeError:
+        # Jika ternyata bukan DateEntry (fallback)
+        str_tanggal = entri["tanggal"].get()
+
     data = {
         "dasar_surat": v_dasar.get(),
-        "tanggal": entri["tanggal"].get(),
+        "tanggal": entri["tanggal"].get_date(),
         "bencana": entri["bencana"].get(),
         "alamat_detail": {"kecamatan": kec, "ds_kel": kel, "dukuh": dukuh},
         "alamat_string": alamat_lengkap,
@@ -43,9 +56,45 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
             }
         )
     else:
-        data.update({"tanggal_assessment": entri_ass["tgl_ass"].get()})
+        data.update({"tanggal_assessment": entri_ass["tgl_ass"].get_date()})
 
-    print("Data Terinput:", data)
+    # Siapkan data waktu untuk template (Indonesian Format)
+    waktu = get_indonesia_date(str_tanggal)
+
+    # Format dasar surat untuk template core [cite: 55]
+    if v_dasar.get() == "kecamatan":
+        txt_dasar = f"Surat dari {entri_kec['surat_dari'].get()} Nomor {entri_kec['nomor_surat'].get()}"
+    else:
+        # Ambil tanggal assessment dengan get_date() juga
+        tgl_ass_obj = entri_ass["tgl_ass"].get_date()
+        txt_dasar = f"Hasil Assessment Tanggal {tgl_ass_obj.strftime('%d/%m/%Y')}"
+
+    # Data Umum sesuai template [cite: 13, 30, 47, 64, 83, 100]
+    data_umum = {
+        **waktu,  # Memasukkan hari, tanggal, bulan, tahun, tanggal_lengkap
+        "bencana": entri["bencana"].get(),
+        "alamat_string": f"Desa {entri['alamat_kel'].get()}, Kec. {entri['alamat_kec'].get()}",
+        "alamat_kec": entri["alamat_kec"].get(),
+        "dasar_surat_text": txt_dasar,
+    }
+
+    # Ambil list logistik dari widget tabel [cite: 16, 33, 50, 66, 86, 103]
+    logistik_data = []
+    for row in list_logistik:
+        uraian_val = row["uraian"].get()
+        if uraian_val:
+            logistik_data.append(
+                {
+                    "keterangan": row["keterangan"].get(),
+                    "uraian": uraian_val,
+                    "volume": row["volume"].get(),
+                    "satuan": row["satuan"].get(),
+                }
+            )
+
+    # Jalankan Export ke Word
+    generate_word_output(data_umum, logistik_data)
+    # print("Data Terinput:", data)
     messagebox.showinfo(
         "Berhasil", f"Data Disimpan! {len(data['logistik'])} item logistik tercatat."
     )
@@ -79,3 +128,91 @@ def handle_kecamatan_change(event, cb_kecamatan, cb_desa, data_wilayah):
         cb_desa.set(desa_list[0])  # Set ke item pertama
     else:
         cb_desa.set("")
+
+
+def get_indonesia_date(date_str):
+    """Konversi dd/mm/yyyy ke format tanggal, hari, bulan Indonesia"""
+    hari_nama = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
+    bulan_nama = [
+        "Januari",
+        "Februari",
+        "Maret",
+        "April",
+        "Mei",
+        "Juni",
+        "Juli",
+        "Agustus",
+        "September",
+        "Oktober",
+        "November",
+        "Desember",
+    ]
+
+    d, m, y = map(int, date_str.split("/"))
+    dt = datetime.date(y, m, d)
+
+    return {
+        "hari": hari_nama[dt.weekday()],
+        "tanggal": d,
+        "bulan": bulan_nama[m - 1],
+        "tahun": y,
+        "tanggal_lengkap": f"{d} {bulan_nama[m - 1]} {y}",
+    }
+
+
+def generate_word_output(data_umum, list_logistik):
+    # 1. Kelompokkan Logistik berdasarkan Keterangan
+    grouped_logistik = {}
+    for item in list_logistik:
+        ket = item["keterangan"]
+        if ket not in grouped_logistik:
+            grouped_logistik[ket] = []
+        grouped_logistik[ket].append(item)
+
+    # 2. Render Halaman Pertama (CORE) [cite: 53, 55, 66]
+    context_core = {
+        "hari": data_umum["hari"],
+        "tanggal": data_umum["tanggal"],
+        "bulan": data_umum["bulan"],
+        "tanggal_lengkap": data_umum["tanggal_lengkap"],
+        "dasar_surat": data_umum["dasar_surat_text"],
+        "bencana": data_umum["bencana"],
+        "alamat": data_umum["alamat_string"],
+        "daftar_logistik": list_logistik,
+    }
+
+    doc_main_tpl = DocxTemplate("template_ba_logistik_core.docx")
+    doc_main_tpl.render(context_core)
+    doc_main_tpl.save("temp_result.docx")
+
+    final_doc = Document("temp_result.docx")
+
+    # 3. Tambahkan Halaman BAST per Sumber Dana [cite: 15, 32, 49, 85, 102]
+    for keterangan, items in grouped_logistik.items():
+        # Normalisasi nama file (Contoh: "APBD I" jadi "template_ba_logistik_APBD_I.docx")
+        suffix = keterangan.replace(" ", "_")
+        template_path = f"template_ba_logistik_{suffix}.docx"
+
+        if os.path.exists(template_path):
+            sub_tpl = DocxTemplate(template_path)
+            context_bast = {
+                "hari": data_umum["hari"],
+                "tanggal": data_umum["tanggal"],
+                "bulan": data_umum["bulan"],
+                "tanggal_lengkap": data_umum["tanggal_lengkap"],
+                "bencana": data_umum["bencana"],
+                "alamat": data_umum["alamat_string"],
+                "daftar_logistik": items,
+            }
+            sub_tpl.render(context_bast)
+            sub_tpl.save("temp_sub.docx")
+
+            # Gabungkan konten [cite: 16, 33, 50, 86, 103]
+            sub_doc = Document("temp_sub.docx")
+            for element in sub_doc.element.body:
+                final_doc.element.body.append(element)
+
+    # 4. Simpan Final
+    output_name = f"BA_LOGISTIK_{data_umum['tanggal']}_{data_umum['alamat_kec']}.docx"
+    final_doc.save(output_name)
+    return output_name
