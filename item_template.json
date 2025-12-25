@@ -1,11 +1,11 @@
 {
     "dasar_surat" : "123", 
-    "hari" : "123", 
-    "tanggal" : "123", 
-    "bulan" : "123", 
-    "tanggal_lengkap" : "123", 
-    "bencana" : "123", 
-    "alamat" : "123", 
-    "daftar_logistik" : "123", 
-    "keterangan" : "123"
+    "hari" : "Sabtu", 
+    "tanggal" : "12", 
+    "bulan" : "Maret", 
+    "tanggal_lengkap" : "12 Maret 2025", 
+    "bencana" : "Angin Kencang", 
+    "alamat" : "Kliteh", 
+    "daftar_logistik" : [], 
+    "keterangan" : "String"
 }

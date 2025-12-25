@@ -99,12 +99,6 @@ def main():
     )
 
     entri["alamat_dukuh"] = comp.create_label_entry(frame_umum, "  - Dukuh/Kampung", 5)
-    entri["keterangan"] = comp.create_label_combobox(
-        frame_umum,
-        "Keterangan",
-        6,
-        ["APBN", "APBD I", "APBD II", "Hibah APBN", "Hibah APBD"],
-    )
 
     # --- FRAME KANAN (LOGISTIK) ---
     right_container = tk.Frame(root, padx=20, pady=10, relief="groove", borderwidth=1)

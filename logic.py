@@ -14,7 +14,7 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
         "bencana": entri["bencana"].get(),
         "alamat_detail": {"kecamatan": kec, "ds_kel": kel, "dukuh": dukuh},
         "alamat_string": alamat_lengkap,
-        "keterangan_dasar": entri["keterangan"].get(),
+        "keterangan_dasar": entri,
         "logistik": [],
     }
 
