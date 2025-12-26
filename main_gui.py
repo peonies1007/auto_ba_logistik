@@ -35,8 +35,15 @@ def main():
             frame_kecamatan, "Surat dari Kec/Desa", 0
         ),
         "nomor_surat": comp.create_label_entry(frame_kecamatan, "Nomor Surat", 1),
-        "perihal": comp.create_label_entry(frame_kecamatan, "Perihal", 2),
     }
+
+    tk.Label(frame_kecamatan, text="Tanggal Surat").grid(
+        row=2, column=0, sticky="w", pady=2
+    )
+    entri_kec["tgl_surat"] = buat_date_picker(frame_kecamatan)
+    entri_kec["tgl_surat"].grid(row=2, column=1, padx=10, pady=2, sticky="w")
+
+    entri_kec["perihal"] = comp.create_label_entry(frame_kecamatan, "Perihal", 3)
 
     frame_assessment = tk.Frame(left_container)
     tk.Label(frame_assessment, text="Tanggal Assessment").grid(

@@ -79,7 +79,17 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
 
     # Format dasar surat untuk template core [cite: 55]
     if v_dasar.get() == "kecamatan":
-        txt_dasar = f"Surat dari {entri_kec['surat_dari'].get()} Nomor {entri_kec['nomor_surat'].get()}"
+        # Ambil tanggal dari date picker kecamatan
+        tgl_obj = entri_kec["tgl_surat"].get_date()
+        tgl_surat_fmt = f"{tgl_obj.day} {bulan_nama[tgl_obj.month - 1]} {tgl_obj.year}"
+
+        # Gabungkan teks untuk {{ dasar_surat }}
+        txt_dasar = (
+            f"surat dari {entri_kec['surat_dari'].get()} "
+            f"No. {entri_kec['nomor_surat'].get()} "
+            f"tanggal {tgl_surat_fmt} "
+            f"perihal {entri_kec['perihal'].get()}"
+        )
     else:
         # Ambil tanggal assessment dengan get_date() juga
         tgl_ass_obj = entri_ass["tgl_ass"].get_date()
@@ -90,13 +100,13 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
         tgl_ass_formatted = f"{hari} {bulan} {tahun}"
 
         # 4. Masukkan ke teks dasar surat
-        txt_dasar = f"Hasil Assessment Tanggal {tgl_ass_formatted}"
+        txt_dasar = f"hasil assessment tanggal {tgl_ass_formatted} tentang kejadian {entri['bencana'].get()}"
 
     # Data Umum sesuai template [cite: 13, 30, 47, 64, 83, 100]
     data_umum = {
         **waktu,  # Memasukkan hari, tanggal, bulan, tahun, tanggal_lengkap
         "bencana": entri["bencana"].get(),
-        "alamat_string": f"{entri['alamat_kel'].get()}, Kec. {entri['alamat_kec'].get()}",
+        "alamat_string": f"{entri['alamat_dukuh'].get()}, {entri['alamat_kel'].get()}, Kec. {entri['alamat_kec'].get()}",
         "alamat_kec": entri["alamat_kec"].get(),
         "dasar_surat_text": txt_dasar,
     }
@@ -106,9 +116,16 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
     for row in list_logistik:
         uraian_val = row["uraian"].get()
         if uraian_val:
+            # Ambil nilai keterangan asli (misal: "HIBAH_APBN")
+            ket_raw = row["keterangan"].get()
+
+            # Hilangkan underscore untuk tampilan di tabel Word (misal: "HIBAH APBN")
+            ket_clean = ket_raw.replace("_", " ")
+
             logistik_data.append(
                 {
-                    "keterangan": row["keterangan"].get(),
+                    "keterangan": ket_clean,  # Ini yang akan tampil di kolom Keterangan Word
+                    "keterangan_raw": ket_raw,  # Simpan versi asli untuk memilih template file"uraian": uraian_val,
                     "uraian": uraian_val,
                     "volume": row["volume"].get(),
                     "satuan": row["satuan"].get(),
@@ -200,7 +217,7 @@ def generate_word_output(data_umum, list_logistik):
     # 1. Kelompokkan Logistik berdasarkan Keterangan
     grouped_logistik = {}
     for item in list_logistik:
-        ket = item["keterangan"]
+        ket = item["keterangan_raw"]
         if ket not in grouped_logistik:
             grouped_logistik[ket] = []
         grouped_logistik[ket].append(item)
@@ -227,19 +244,13 @@ def generate_word_output(data_umum, list_logistik):
 
     # 3. Tambahkan Halaman BAST per Sumber Dana
     for keterangan, items in grouped_logistik.items():
-        suffix = keterangan.replace(" ", "_")
-        template_path = f"template_ba_logistik_{suffix}.docx"
+        template_path = f"template_ba_logistik_{keterangan}.docx"
 
         if os.path.exists(template_path):
             # Render sub-template
             sub_tpl = DocxTemplate(template_path)
             context_bast = {
-                "hari": data_umum["hari"],
-                "tanggal": data_umum["tanggal"],
-                "bulan": data_umum["bulan"],
-                "tanggal_lengkap": data_umum["tanggal_lengkap"],
-                "bencana": data_umum["bencana"],
-                "alamat": data_umum["alamat_string"],
+                **data_umum,
                 "daftar_logistik": items,
             }
             sub_tpl.render(context_bast)
