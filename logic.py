@@ -20,14 +20,26 @@ bulan_nama = [
     "Desember",
 ]
 
+bilangan = [
+    "",
+    "Satu",
+    "Dua",
+    "Tiga",
+    "Empat",
+    "Lima",
+    "Enam",
+    "Tujuh",
+    "Delapan",
+    "Sembilan",
+    "Sepuluh",
+    "Sebelas",
+]
+
+hari_nama = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
+
 
 def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
-    # Mengambil data alamat gabungan atau terpisah
-    kec = entri["alamat_kec"].get()
-    kel = entri["alamat_kel"].get()
-    dukuh = entri["alamat_dukuh"].get()
-    alamat_lengkap = f"Dukuh {dukuh}, Desa {kel}, Kec. {kec}"
-
+    data = {}
     # FIX: Gunakan get_date() untuk DateEntry
     try:
         obj_tanggal = entri["tanggal"].get_date()
@@ -36,32 +48,6 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
     except AttributeError:
         # Jika ternyata bukan DateEntry (fallback)
         str_tanggal = entri["tanggal"].get()
-
-    data = {
-        "dasar_surat": v_dasar.get(),
-        "tanggal": entri["tanggal"].get_date(),
-        "bencana": entri["bencana"].get(),
-        "alamat_detail": {"kecamatan": kec, "ds_kel": kel, "dukuh": dukuh},
-        "alamat_string": alamat_lengkap,
-        "keterangan_dasar": entri,
-        "logistik": [],
-    }
-
-    # Ambil data dari tabel logistik yang dinamis
-    logistik_final = []
-    for item in list_logistik:
-        uraian_val = item["uraian"].get()
-        if uraian_val:  # Hanya simpan jika barang sudah dipilih
-            logistik_final.append(
-                {
-                    "keterangan": item["keterangan"].get(),
-                    "uraian": uraian_val,
-                    "volume": item["volume"].get(),
-                    "satuan": item["satuan"].get(),
-                }
-            )
-
-    data["logistik"] = logistik_final
 
     if v_dasar.get() == "kecamatan":
         data.update(
@@ -108,6 +94,7 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
         "bencana": entri["bencana"].get(),
         "alamat_string": f"{entri['alamat_dukuh'].get()}, {entri['alamat_kel'].get()}, Kec. {entri['alamat_kec'].get()}",
         "alamat_kec": entri["alamat_kec"].get(),
+        "alamat_kel": entri["alamat_kel"].get(),
         "dasar_surat_text": txt_dasar,
     }
 
@@ -136,7 +123,8 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
     generate_word_output(data_umum, logistik_data)
     # print("Data Terinput:", data)
     messagebox.showinfo(
-        "Berhasil", f"Data Disimpan! {len(data['logistik'])} item logistik tercatat."
+        "Berhasil",
+        f"Data Disimpan! {len(logistik_data)} item logistik tercatat.",
     )
 
 
@@ -171,20 +159,6 @@ def handle_kecamatan_change(event, cb_kecamatan, cb_desa, data_wilayah):
 
 
 def angka_ke_kata(n):
-    bilangan = [
-        "",
-        "Satu",
-        "Dua",
-        "Tiga",
-        "Empat",
-        "Lima",
-        "Enam",
-        "Tujuh",
-        "Delapan",
-        "Sembilan",
-        "Sepuluh",
-        "Sebelas",
-    ]
     if n < 12:
         return bilangan[n]
     elif n < 20:
@@ -199,7 +173,6 @@ def angka_ke_kata(n):
 
 def get_indonesia_date(date_str):
     """Konversi dd/mm/yyyy ke format tanggal, hari, bulan Indonesia"""
-    hari_nama = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
 
     d, m, y = map(int, date_str.split("/"))
     dt = datetime.date(y, m, d)
@@ -207,7 +180,9 @@ def get_indonesia_date(date_str):
     return {
         "hari": hari_nama[dt.weekday()],
         "tanggal": angka_ke_kata(d).strip(),
+        "tanggal_int": d,
         "bulan": bulan_nama[m - 1],
+        "bulan_int": m,
         "tahun": y,
         "tanggal_lengkap": f"{d} {bulan_nama[m - 1]} {y}",
     }
@@ -224,13 +199,7 @@ def generate_word_output(data_umum, list_logistik):
 
     # 2. Render Halaman Pertama (CORE)
     context_core = {
-        "hari": data_umum["hari"],
-        "tanggal": data_umum["tanggal"],
-        "bulan": data_umum["bulan"],
-        "tanggal_lengkap": data_umum["tanggal_lengkap"],
-        "dasar_surat": data_umum["dasar_surat_text"],
-        "bencana": data_umum["bencana"],
-        "alamat": data_umum["alamat_string"],
+        **data_umum,
         "daftar_logistik": list_logistik,
     }
 
@@ -267,7 +236,7 @@ def generate_word_output(data_umum, list_logistik):
             composer.append(doc_to_add)
 
     # 4. Simpan Final
-    output_name = f"BA_LOGISTIK_{data_umum['tanggal']}_{data_umum['alamat_kec']}.docx"
+    output_name = f"{data_umum['tanggal_int']}{data_umum['bulan_int']}-BA Logistik-{data_umum['tanggal_lengkap']}-{data_umum['alamat_kel']}-Kec. {data_umum['alamat_kec']}.docx"
     composer.save(output_name)
 
     # Bersihkan file sementara
