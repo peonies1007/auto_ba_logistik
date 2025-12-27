@@ -2,7 +2,9 @@ import tkinter as tk
 from date_picker import buat_date_picker
 from data_wilayah import DATA_KECAMATAN
 import components as comp
-import logic
+from logic.handle_simpan import handle_simpan
+import logic.logic_formatter as form
+import logic.logic as logic
 from data_logistik import data_logistik  # Pastikan file ini ada
 
 
@@ -156,7 +158,7 @@ def main():
     tk.Button(
         left_container,
         text="SIMPAN DATA",
-        command=lambda: logic.handle_simpan(
+        command=lambda: handle_simpan(
             v_dasar, entri, entri_kec, entri_ass, rows_logistik
         ),
         bg="#2196F3",
