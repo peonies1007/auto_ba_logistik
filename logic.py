@@ -40,6 +40,7 @@ hari_nama = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
 
 def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
     data = {}
+
     # FIX: Gunakan get_date() untuk DateEntry
     try:
         obj_tanggal = entri["tanggal"].get_date()
@@ -100,13 +101,13 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
 
     # Ambil list logistik dari widget tabel [cite: 16, 33, 50, 66, 86, 103]
     logistik_data = []
-    for row in list_logistik:
+    teks_logistik = ""
+    for i, row in enumerate(list_logistik, 1):
         uraian_val = row["uraian"].get()
         if uraian_val:
-            # Ambil nilai keterangan asli (misal: "HIBAH_APBN")
+            vol = row["volume"].get()
+            sat = row["satuan"].get()
             ket_raw = row["keterangan"].get()
-
-            # Hilangkan underscore untuk tampilan di tabel Word (misal: "HIBAH APBN")
             ket_clean = ket_raw.replace("_", " ")
 
             logistik_data.append(
@@ -118,14 +119,40 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
                     "satuan": row["satuan"].get(),
                 }
             )
+            teks_logistik += f"{i}. {uraian_val} ({vol} {sat}) - {ket_clean}\n"
 
-    # Jalankan Export ke Word
-    generate_word_output(data_umum, logistik_data)
-    # print("Data Terinput:", data)
-    messagebox.showinfo(
-        "Berhasil",
-        f"Data Disimpan! {len(logistik_data)} item logistik tercatat.",
+    pesan_konfirmasi = (
+        f"PERIKSA KEMBALI DATA ANDA:\n\n"
+        f"--- DATA UMUM ---\n"
+        f"Tanggal BA: {waktu['tanggal_lengkap']}\n"
+        f"Jenis Bencana: {data_umum['bencana']}\n"
+        f"Lokasi: {data_umum['alamat_string']}\n\n"
+        f"--- DASAR SURAT ---\n"
+        f"{txt_dasar}\n\n"
+        f"--- DAFTAR LOGISTIK ---\n"
+        f"{teks_logistik if teks_logistik else '(Belum ada item)'}\n"
+        f"---------------------------\n"
+        f"Apakah data di atas sudah benar?"
     )
+
+    if not logistik_data:
+        messagebox.showwarning("Peringatan", "Daftar logistik masih kosong!")
+        return
+
+    konfirmasi = messagebox.askyesno("Konfirmasi Simpan", pesan_konfirmasi)
+
+    if konfirmasi:  # Jika user menekan 'Yes'
+        # Jalankan Export ke Word
+        try:
+            output_file = generate_word_output(data_umum, logistik_data)
+            messagebox.showinfo(
+                "Berhasil", f"Data Berhasil Disimpan!\nFile: {output_file}"
+            )
+        except Exception as e:
+            messagebox.showerror("Error", f"Gagal menyimpan file: {str(e)}")
+    else:
+        # Jika user menekan 'No', proses dibatalkan
+        pass
 
 
 def handle_toggle(v_dasar, frame_kec, frame_ass):
@@ -199,7 +226,13 @@ def generate_word_output(data_umum, list_logistik):
 
     # 2. Render Halaman Pertama (CORE)
     context_core = {
-        **data_umum,
+        "hari": data_umum["hari"],
+        "tanggal": data_umum["tanggal"],
+        "bulan": data_umum["bulan"],
+        "tanggal_lengkap": data_umum["tanggal_lengkap"],
+        "dasar_surat": data_umum["dasar_surat_text"],
+        "bencana": data_umum["bencana"],
+        "alamat": data_umum["alamat_string"],
         "daftar_logistik": list_logistik,
     }
 
@@ -219,7 +252,7 @@ def generate_word_output(data_umum, list_logistik):
             # Render sub-template
             sub_tpl = DocxTemplate(template_path)
             context_bast = {
-                **data_umum,
+                **context_core,
                 "daftar_logistik": items,
             }
             sub_tpl.render(context_bast)
