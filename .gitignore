@@ -7,3 +7,5 @@ BA_LOGISTIK_*
 *BA*
 credentials.json
 token.pickle
+dist
+build

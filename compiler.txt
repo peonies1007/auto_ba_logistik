@@ -1,0 +1,27 @@
+LINUX :
+pyinstaller --noconfirm --onefile --windowed \
+--add-data "template_ba_logistik_APBD_I.docx:." \
+--add-data "template_ba_logistik_APBD_II.docx:." \
+--add-data "template_ba_logistik_APBN.docx:." \
+--add-data "template_ba_logistik_HIBAH_APBN.docx:." \
+--add-data "template_ba_logistik_core.docx:." \
+--add-data "template_ba_logistik_HIBAH_APBD_II.docx:." \
+--add-data "data_logistik.py:." \
+--add-data "data_wilayah.py:." \
+--add-data "credentials.json:." \
+--name "AutoBALogistik" \
+main_gui.py
+
+WINDOWS :
+pyinstaller --noconfirm --onefile --windowed \
+--add-data "template_ba_logistik_APBD_I.docx;." \
+--add-data "template_ba_logistik_APBD_II.docx;." \
+--add-data "template_ba_logistik_APBN.docx;." \
+--add-data "template_ba_logistik_HIBAH_APBN.docx;." \
+--add-data "template_ba_logistik_core.docx;." \
+--add-data "template_ba_logistik_HIBAH_APBD_II.docx;." \
+--add-data "data_logistik.py;.\
+--add-data "data_wilayah.py;" \
+--add-data "credentials.json;" \
+--name "AutoBALogistik" \
+main_gui.py
