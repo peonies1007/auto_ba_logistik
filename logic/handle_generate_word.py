@@ -58,7 +58,16 @@ def generate_word_output(data_umum, list_logistik):
             composer.append(doc_to_add)
 
     # 4. Simpan Final
-    output_name = f"{data_umum['tanggal_int']}{data_umum['bulan_int']}-BA Logistik-{data_umum['tanggal_lengkap']}-{data_umum['alamat_kel']}-Kec. {data_umum['alamat_kec']}.docx"
+    if data_umum["tanggal_int"] < 10:
+        kode_awal_name_tanggal = f"0{data_umum['tanggal_int']}"
+    else:
+        kode_awal_name_tanggal = data_umum["tanggal_int"]
+    if data_umum["bulan_int"] < 10:
+        kode_awal_name_bulan = f"0{data_umum['bulan_int']}"
+    else:
+        kode_awal_name_bulan = data_umum["bulan_int"]
+
+    output_name = f"{kode_awal_name_tanggal}{kode_awal_name_bulan}-BA Logistik-{data_umum['tanggal_lengkap']}-{data_umum['alamat_kel']}-Kec. {data_umum['alamat_kec']}.docx"
     composer.save(output_name)
 
     # Bersihkan file sementara

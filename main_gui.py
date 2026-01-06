@@ -77,7 +77,7 @@ def main():
     frame_umum.grid(row=2, column=0, columnspan=2, pady=10, sticky="w")
     entri = {}
 
-    tk.Label(frame_umum, text="Tanggal").grid(
+    tk.Label(frame_umum, text="Tanggal Distribusi").grid(
         row=0, column=0, sticky="w", padx=10, pady=2
     )
     entri["tanggal"] = buat_date_picker(frame_umum)
@@ -94,10 +94,10 @@ def main():
         row=2, column=0, sticky="w", padx=10, pady=5
     )
     entri["alamat_kec"] = comp.create_label_combobox(
-        frame_umum, "  - Kecamatan", 3, [d["kecamatan"] for d in DATA_KECAMATAN]
+        frame_umum, "Kecamatan", 3, [d["kecamatan"] for d in DATA_KECAMATAN]
     )
     entri["alamat_kel"] = comp.create_label_combobox(
-        frame_umum, "  - Kelurahan/Desa", 4, []
+        frame_umum, "Kelurahan/Desa", 4, []
     )
 
     # Event Binding Alamat
@@ -108,7 +108,7 @@ def main():
         ),
     )
 
-    entri["alamat_dukuh"] = comp.create_label_entry(frame_umum, "  - Dukuh/Kampung", 5)
+    entri["alamat_dukuh"] = comp.create_label_entry(frame_umum, "Dukuh/Kampung", 5)
 
     # --- FRAME KANAN (LOGISTIK) ---
     right_container = tk.Frame(root, padx=20, pady=10, relief="groove", borderwidth=1)

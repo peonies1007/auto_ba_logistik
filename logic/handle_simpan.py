@@ -108,34 +108,43 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
         return
 
     # Tampilkan Message Box Konfirmasi dengan tambahan info backup
-    konfirmasi = messagebox.askyesno(
-        "Konfirmasi Simpan",
-        pesan_konfirmasi + "\n\nApakah ingin Backup ke Google Drive juga?",
-    )
+    konfirmasi_lokal = messagebox.askyesno("Konfirmasi Simpan", pesan_konfirmasi)
 
-    if konfirmasi:  # Jika user menekan 'Yes'
+    if konfirmasi_lokal:  # Jika user menekan 'Yes'
         # Jalankan Export ke Word
         try:
             output_file = generate_word_output(data_umum, logistik_data)
 
-            drive_id = upload_to_drive(output_file)
-
-            if drive_id:
-                messagebox.showinfo(
-                    "Berhasil",
-                    f"Data Tersimpan & Backup Berhasil!\nFile: {output_file}\nID Drive: {drive_id}",
-                )
-            else:
-                messagebox.showwarning(
-                    "Berhasil Sebagian",
-                    f"File tersimpan lokal: {output_file}\nNamun Backup Drive GAGAL (Cek koneksi/kredensial).",
-                )
-
             messagebox.showinfo(
                 "Berhasil", f"Data Berhasil Disimpan!\nFile: {output_file}"
             )
+
         except Exception as e:
             messagebox.showerror("Error", f"Gagal menyimpan file: {str(e)}")
+        # Tampilkan Message Box Konfirmasi dengan tambahan info backup
+        konfirmasi_backup = messagebox.askyesno(
+            "Konfirmasi Backup Drive",
+            "Apakah ingin Backup ke Google Drive juga?",
+        )
+
+        if konfirmasi_backup:  # Jika user menekan 'Yes'
+            try:
+                drive_id = upload_to_drive(output_file)
+                if drive_id:
+                    messagebox.showinfo(
+                        "Berhasil",
+                        f"Data Tersimpan & Backup Berhasil!\nFile: {output_file}\nID Drive: {drive_id}",
+                    )
+                else:
+                    messagebox.showwarning(
+                        "Berhasil Sebagian",
+                        f"File tersimpan lokal: {output_file}\nNamun Backup Drive GAGAL (Cek koneksi/kredensial).",
+                    )
+            except Exception as e:
+                messagebox.showerror("Error", f"Gagal backup file: {str(e)}")
+        else:
+            # Jika user menekan 'No', proses dibatalkan
+            pass
     else:
         # Jika user menekan 'No', proses dibatalkan
         pass
