@@ -1,4 +1,6 @@
 from tkinter import messagebox
+
+from .logic import upload_to_drive
 from .logic_formatter import get_indonesia_date
 from .constant import bulan_nama
 from .handle_generate_word import generate_word_output
@@ -105,12 +107,30 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
         messagebox.showwarning("Peringatan", "Daftar logistik masih kosong!")
         return
 
-    konfirmasi = messagebox.askyesno("Konfirmasi Simpan", pesan_konfirmasi)
+    # Tampilkan Message Box Konfirmasi dengan tambahan info backup
+    konfirmasi = messagebox.askyesno(
+        "Konfirmasi Simpan",
+        pesan_konfirmasi + "\n\nApakah ingin Backup ke Google Drive juga?",
+    )
 
     if konfirmasi:  # Jika user menekan 'Yes'
         # Jalankan Export ke Word
         try:
             output_file = generate_word_output(data_umum, logistik_data)
+
+            drive_id = upload_to_drive(output_file)
+
+            if drive_id:
+                messagebox.showinfo(
+                    "Berhasil",
+                    f"Data Tersimpan & Backup Berhasil!\nFile: {output_file}\nID Drive: {drive_id}",
+                )
+            else:
+                messagebox.showwarning(
+                    "Berhasil Sebagian",
+                    f"File tersimpan lokal: {output_file}\nNamun Backup Drive GAGAL (Cek koneksi/kredensial).",
+                )
+
             messagebox.showinfo(
                 "Berhasil", f"Data Berhasil Disimpan!\nFile: {output_file}"
             )

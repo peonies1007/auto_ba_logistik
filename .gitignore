@@ -5,3 +5,5 @@ temp_sub.docx
 .~lock*
 BA_LOGISTIK_*
 *BA*
+credentials.json
+token.pickle
