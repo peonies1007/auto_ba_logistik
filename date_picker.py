@@ -1,4 +1,3 @@
-import ttkbootstrap as tb
 from ttkbootstrap.widgets import DateEntry
 
 

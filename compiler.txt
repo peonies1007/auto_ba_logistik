@@ -13,15 +13,28 @@ pyinstaller --noconfirm --onefile --windowed \
 main_gui.py
 
 WINDOWS :
-pyinstaller --noconfirm --onefile --windowed \
+wine pyinstaller --noconsole --noconfirm --windowed  --onefile \
+-p "c:\users\d\appdata\local\programs\python\python311\lib\site-packages" --hidden-import ttkbootstrap \
 --add-data "template_ba_logistik_APBD_I.docx;." \
 --add-data "template_ba_logistik_APBD_II.docx;." \
 --add-data "template_ba_logistik_APBN.docx;." \
 --add-data "template_ba_logistik_HIBAH_APBN.docx;." \
 --add-data "template_ba_logistik_core.docx;." \
 --add-data "template_ba_logistik_HIBAH_APBD_II.docx;." \
---add-data "data_logistik.py;.\
---add-data "data_wilayah.py;" \
---add-data "credentials.json;" \
+--add-data "data_logistik.py;." \
+--add-data "data_wilayah.py;." \
+--add-data "credentials.json;." \
+--name "AutoBALogistik" \
+main_gui.py
+
+wine pyinstaller --noconfirm --windowed --onefile \
+--hidden-import ttkbootstrap \
+--add-data "templates;templates" \
+--add-data "data_logistik.py;." \
+--add-data "data_wilayah.py;." \
+--add-data "credentials.json;." \
+--collect-all docxcompose \
+--collect-all jaraco.text \
+--hidden-import jaraco.text \
 --name "AutoBALogistik" \
 main_gui.py

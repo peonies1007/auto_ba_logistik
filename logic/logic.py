@@ -4,9 +4,21 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.http import MediaFileUpload
 import os
+import sys
 
 # Tentukan scope akses: 'file' artinya aplikasi bisa melihat/mengedit file yang diunggahnya sendiri
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]
+
+
+def resource_path(relative_path):
+    """Dapatkan path absolut ke resource, bekerja untuk dev dan PyInstaller"""
+    try:
+        # PyInstaller membuat folder sementara dan menyimpan path di _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 
 def handle_toggle(v_dasar, frame_kec, frame_ass):
@@ -52,7 +64,8 @@ def get_drive_service():
             creds.refresh(Request())
         else:
             # Anda perlu mendownload 'credentials.json' dari Google Cloud Console
-            flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
+            creds_path = resource_path("credentials.json")
+            flow = InstalledAppFlow.from_client_secrets_file(creds_path, SCOPES)
             creds = flow.run_local_server(port=0)
         with open("token.pickle", "wb") as token:
             pickle.dump(creds, token)

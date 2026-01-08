@@ -2,6 +2,7 @@ from docxtpl import DocxTemplate
 from docx import Document
 import os
 from docxcompose.composer import Composer  # Tambahkan ini
+from .logic import resource_path
 
 
 def generate_word_output(data_umum, list_logistik):
@@ -25,7 +26,9 @@ def generate_word_output(data_umum, list_logistik):
         "daftar_logistik": list_logistik,
     }
 
-    doc_main_tpl = DocxTemplate("template_ba_logistik_core.docx")
+    template_core_path = resource_path("templates/template_ba_logistik_core.docx")
+
+    doc_main_tpl = DocxTemplate(template_core_path)
     doc_main_tpl.render(context_core)
     doc_main_tpl.save("temp_result.docx")
 
@@ -36,10 +39,10 @@ def generate_word_output(data_umum, list_logistik):
     # 3. Tambahkan Halaman BAST per Sumber Dana
     for keterangan, items in grouped_logistik.items():
         template_path = f"template_ba_logistik_{keterangan}.docx"
-
-        if os.path.exists(template_path):
+        template_sub_path = resource_path(os.path.join("templates", template_path))
+        if os.path.exists(template_sub_path):
             # Render sub-template
-            sub_tpl = DocxTemplate(template_path)
+            sub_tpl = DocxTemplate(template_sub_path)
             context_bast = {
                 **context_core,
                 "daftar_logistik": items,
