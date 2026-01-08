@@ -38,3 +38,15 @@ wine pyinstaller --noconfirm --windowed --onefile \
 --hidden-import jaraco.text \
 --name "AutoBALogistik" \
 main_gui.py
+
+pyinstaller --noconfirm --windowed --onefile ^
+--hidden-import ttkbootstrap ^
+--add-data "templates;templates" ^
+--add-data "data_logistik.py;." ^
+--add-data "data_wilayah.py;." ^
+--add-data "credentials.json;." ^
+--collect-all docxcompose ^
+--collect-all jaraco.text ^
+--hidden-import jaraco.text ^
+--name "AutoBALogistik" ^
+main_gui.py

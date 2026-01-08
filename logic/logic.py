@@ -5,6 +5,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.http import MediaFileUpload
 import os
 import sys
+import webbrowser
 
 # Tentukan scope akses: 'file' artinya aplikasi bisa melihat/mengedit file yang diunggahnya sendiri
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]
@@ -63,10 +64,19 @@ def get_drive_service():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            # Anda perlu mendownload 'credentials.json' dari Google Cloud Console
-            creds_path = resource_path("credentials.json")
-            flow = InstalledAppFlow.from_client_secrets_file(creds_path, SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file(resource_path('credentials.json'), SCOPES)
+            
+            # --- MODIFIKASI DI SINI ---
+            # Kita mendapatkan URL otorisasi terlebih dahulu
+            auth_url, _ = flow.authorization_url(prompt='consent')
+            
+            print(f"Membuka browser untuk otorisasi...")
+            # Paksa buka di browser default (Chrome)
+            webbrowser.open(auth_url)
+            
+            # Baru jalankan server untuk menerima kode kembalian
             creds = flow.run_local_server(port=0)
+            # --------------------------
         with open("token.pickle", "wb") as token:
             pickle.dump(creds, token)
 
