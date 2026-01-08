@@ -39,7 +39,7 @@ wine pyinstaller --noconfirm --windowed --onefile \
 --name "AutoBALogistik" \
 main_gui.py
 
-pyinstaller --noconfirm --windowed --onefile ^
+python -m PyInstaller --noconfirm --windowed --onefile ^
 --hidden-import ttkbootstrap ^
 --add-data "templates;templates" ^
 --add-data "data_logistik.py;." ^

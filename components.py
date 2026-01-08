@@ -1,6 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
-
+import threading
+import ttkbootstrap as tb
+from ttkbootstrap.constants import *
+from tkinter import messagebox
+from logic.logic import upload_to_drive
 
 def create_label_entry(parent, label_text, row):
     tk.Label(parent, text=label_text).grid(
@@ -97,3 +101,36 @@ def create_logistik_row(parent, row_index, on_delete, data_logistik):
         "btn_hapus": btn_hapus,
     }
     return row_widgets
+
+def backup_dengan_loading(output_file):
+    # 1. Buat Jendela Popup Loading
+    loading_window = tb.Toplevel(title="Proses Backup")
+    loading_window.geometry("300x150")
+    loading_window.grab_set()  # Agar user tidak bisa klik jendela utama
+    
+    # Label Keterangan
+    lbl = tb.Label(loading_window, text="Sedang mengunggah ke Drive...", font=("Helvetica", 10))
+    lbl.pack(pady=20)
+
+    # Progress Bar (Indeterminate = jalan terus)
+    progress = tb.Progressbar(loading_window, mode='indeterminate', bootstyle='info', length=200)
+    progress.pack(pady=10)
+    progress.start(10) # Mulai animasi
+
+    def proses_upload():
+        try:
+            # Panggil fungsi backup dari logic.py Anda
+            hasil = upload_to_drive(output_file) 
+            
+            # Setelah selesai, tutup popup di thread utama
+            loading_window.after(0, loading_window.destroy)
+            loading_window.after(0, lambda: messagebox.showinfo("Sukses", "Backup berhasil diunggah!"))
+        except Exception as e:
+            error_pesan = str(e)
+            loading_window.after(0, loading_window.destroy)
+            loading_window.after(0, lambda: messagebox.showerror("Error", f"Gagal backup: {error_pesan}"))
+
+    # 2. Jalankan Proses Upload di Thread Berbeda
+    # Agar GUI tidak membeku (Not Responding)
+    thread = threading.Thread(target=proses_upload)
+    thread.start()

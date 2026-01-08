@@ -1,10 +1,9 @@
 from tkinter import messagebox
-
 from .logic import upload_to_drive
 from .logic_formatter import get_indonesia_date
 from .constant import bulan_nama
 from .handle_generate_word import generate_word_output
-
+from components import backup_dengan_loading
 
 def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
     data = {}
@@ -129,17 +128,7 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
 
         if konfirmasi_backup:  # Jika user menekan 'Yes'
             try:
-                drive_id = upload_to_drive(output_file)
-                if drive_id:
-                    messagebox.showinfo(
-                        "Berhasil",
-                        f"Data Tersimpan & Backup Berhasil!\nFile: {output_file}\nID Drive: {drive_id}",
-                    )
-                else:
-                    messagebox.showwarning(
-                        "Berhasil Sebagian",
-                        f"File tersimpan lokal: {output_file}\nNamun Backup Drive GAGAL (Cek koneksi/kredensial).",
-                    )
+                backup_dengan_loading(output_file)
             except Exception as e:
                 messagebox.showerror("Error", f"Gagal backup file: {str(e)}")
         else:
