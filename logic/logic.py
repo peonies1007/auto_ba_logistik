@@ -6,6 +6,7 @@ from googleapiclient.http import MediaFileUpload
 import os
 import sys
 import webbrowser
+import socket
 
 # Tentukan scope akses: 'file' artinya aplikasi bisa melihat/mengedit file yang diunggahnya sendiri
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]
@@ -105,3 +106,16 @@ def upload_to_drive(file_path):
     except Exception as e:
         print(f"Error Drive: {e}")
         return False, e
+
+
+def cek_internet(host="8.8.8.8", port=53, timeout=3):
+    """
+    Mengecek apakah ada koneksi internet.
+    """
+    try:
+        # Mencoba membuat koneksi ke host
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        return True
+    except socket.error:
+        return False

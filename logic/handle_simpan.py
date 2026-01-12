@@ -5,6 +5,7 @@ from .constant import bulan_nama
 from .handle_generate_word import generate_word_output
 from components import backup_dengan_loading
 from .edit_logistik_sheets import update_logistik
+from .logic import cek_internet
 
 
 def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
@@ -113,7 +114,11 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
     # Tampilkan Message Box Konfirmasi dengan tambahan info backup
     konfirmasi_lokal = messagebox.askyesno("Konfirmasi Simpan", pesan_konfirmasi)
 
-    konfirmasi_sheets = backup_dengan_loading(update_logistik, data_umum, logistik_data)
+    konfirmasi_sheets = True
+    if cek_internet():
+        konfirmasi_sheets = backup_dengan_loading(
+            update_logistik, data_umum, logistik_data
+        )
 
     if konfirmasi_lokal and konfirmasi_sheets:  # Jika user menekan 'Yes'
         try:
@@ -123,18 +128,8 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
             messagebox.showinfo(
                 "Berhasil", f"Data Berhasil Disimpan!\nFile: {output_file}"
             )
-
-            # Tampilkan Message Box Konfirmasi dengan tambahan info backup
-            konfirmasi_backup = messagebox.askyesno(
-                "Konfirmasi Backup Drive",
-                "Apakah ingin Backup ke Google Drive juga?",
-            )
-
-            if konfirmasi_backup:  # Jika user menekan 'Yes'
+            if cek_internet():
                 backup_dengan_loading(upload_to_drive, output_file)
-            else:
-                # Jika user menekan 'No', proses dibatalkan
-                pass
 
         except Exception as e:
             messagebox.showerror("Error", f"Gagal: {str(e)}")
