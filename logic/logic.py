@@ -64,16 +64,18 @@ def get_drive_service():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(resource_path('credentials.json'), SCOPES)
-            
+            flow = InstalledAppFlow.from_client_secrets_file(
+                resource_path("credentials.json"), SCOPES
+            )
+
             # --- MODIFIKASI DI SINI ---
             # Kita mendapatkan URL otorisasi terlebih dahulu
-            auth_url, _ = flow.authorization_url(prompt='consent')
-            
+            auth_url, _ = flow.authorization_url(prompt="consent")
+
             print(f"Membuka browser untuk otorisasi...")
             # Paksa buka di browser default (Chrome)
             webbrowser.open(auth_url)
-            
+
             # Baru jalankan server untuk menerima kode kembalian
             creds = flow.run_local_server(port=0)
             # --------------------------
@@ -99,7 +101,7 @@ def upload_to_drive(file_path):
             .create(body=file_metadata, media_body=media, fields="id")
             .execute()
         )
-        return file.get("id")
+        return True, f"Data berhasil dibackup di Google Drive pada id {file.get('id')}"
     except Exception as e:
         print(f"Error Drive: {e}")
-        return None
+        return False, e

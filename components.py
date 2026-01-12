@@ -6,6 +6,7 @@ from ttkbootstrap.constants import *
 from tkinter import messagebox
 from logic.logic import upload_to_drive
 
+
 def create_label_entry(parent, label_text, row):
     tk.Label(parent, text=label_text).grid(
         row=row, column=0, sticky="w", pady=5, padx=5
@@ -102,35 +103,70 @@ def create_logistik_row(parent, row_index, on_delete, data_logistik):
     }
     return row_widgets
 
-def backup_dengan_loading(output_file):
-    # 1. Buat Jendela Popup Loading
-    loading_window = tb.Toplevel(title="Proses Backup")
+
+def backup_dengan_loading(target_func, *args):
+    status_hasil = tb.BooleanVar(value=False)
+    # 1. Buat Jendela
+    loading_window = tb.Toplevel(title="Memproses Data")
     loading_window.geometry("300x150")
-    loading_window.grab_set()  # Agar user tidak bisa klik jendela utama
-    
-    # Label Keterangan
-    lbl = tb.Label(loading_window, text="Sedang mengunggah ke Drive...", font=("Helvetica", 10))
+
+    # Letakkan di tengah layar agar tidak sembunyi
+    loading_window.position_center()
+
+    # PENTING: Pastikan jendela selalu di atas (Win 7 sering menumpuk jendela)
+    loading_window.attributes("-topmost", True)
+    loading_window.grab_set()
+
+    lbl = tb.Label(
+        loading_window, text="Mohon tunggu sebentar...", font=("Helvetica", 10)
+    )
     lbl.pack(pady=20)
 
-    # Progress Bar (Indeterminate = jalan terus)
-    progress = tb.Progressbar(loading_window, mode='indeterminate', bootstyle='info', length=200)
+    progress = tb.Progressbar(
+        loading_window, mode="indeterminate", bootstyle="primary", length=200
+    )
     progress.pack(pady=10)
-    progress.start(10) # Mulai animasi
+    progress.start(10)
 
-    def proses_upload():
+    # --- KRITIKAL UNTUK WINDOWS 7 ---
+    # Memaksa Windows menggambar jendela SEKARANG juga sebelum thread dimulai
+    loading_window.update()
+
+    def worker():
         try:
-            # Panggil fungsi backup dari logic.py Anda
-            hasil = upload_to_drive(output_file) 
-            
-            # Setelah selesai, tutup popup di thread utama
-            loading_window.after(0, loading_window.destroy)
-            loading_window.after(0, lambda: messagebox.showinfo("Sukses", "Backup berhasil diunggah!"))
-        except Exception as e:
-            error_pesan = str(e)
-            loading_window.after(0, loading_window.destroy)
-            loading_window.after(0, lambda: messagebox.showerror("Error", f"Gagal backup: {error_pesan}"))
+            # Jalankan fungsi
+            is_success, message = target_func(*args)
 
-    # 2. Jalankan Proses Upload di Thread Berbeda
-    # Agar GUI tidak membeku (Not Responding)
-    thread = threading.Thread(target=proses_upload)
-    thread.start()
+            # Gunakan fungsi bantuan untuk eksekusi UI agar aman
+            def selesai():
+                if loading_window.winfo_exists():
+                    loading_window.destroy()
+
+                status_hasil.set(is_success)
+                # Tampilkan pesan dengan parent agar tidak sembunyi di belakang
+                if is_success:
+                    messagebox.showinfo("Informasi", message)
+                else:
+                    messagebox.showerror("Kesalahan", message)
+
+            loading_window.after(0, selesai)
+        except Exception as e:
+            error_fatal = str(e)
+            print(f"Error di Thread: {error_fatal}")  # Muncul di terminal untuk debug
+
+            def error_handler():
+                if loading_window.winfo_exists():
+                    loading_window.destroy()
+                messagebox.showerror("Error Fatal", f"Sistem Crash: {error_fatal}")
+
+            status_hasil.set(False)
+            loading_window.after(0, error_handler)
+
+    # Jalankan thread
+    t = threading.Thread(target=worker, daemon=True)
+    t.start()
+    # Fungsi akan BERHENTI di sini (tapi GUI tetap jalan) sampai window ditutup/destroy
+    loading_window.wait_window()
+
+    # Setelah window hancur, baru return nilai variabelnya
+    return status_hasil.get()

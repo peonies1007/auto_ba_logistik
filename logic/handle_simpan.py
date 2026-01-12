@@ -4,6 +4,8 @@ from .logic_formatter import get_indonesia_date
 from .constant import bulan_nama
 from .handle_generate_word import generate_word_output
 from components import backup_dengan_loading
+from .edit_logistik_sheets import update_logistik
+
 
 def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
     data = {}
@@ -106,34 +108,36 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
         messagebox.showwarning("Peringatan", "Daftar logistik masih kosong!")
         return
 
+    # Cek jumlah logistik di Google Sheets
+
     # Tampilkan Message Box Konfirmasi dengan tambahan info backup
     konfirmasi_lokal = messagebox.askyesno("Konfirmasi Simpan", pesan_konfirmasi)
 
-    if konfirmasi_lokal:  # Jika user menekan 'Yes'
-        # Jalankan Export ke Word
-        try:
-            output_file = generate_word_output(data_umum, logistik_data)
+    konfirmasi_sheets = backup_dengan_loading(update_logistik, data_umum, logistik_data)
 
+    if konfirmasi_lokal and konfirmasi_sheets:  # Jika user menekan 'Yes'
+        try:
+            # Jalankan Export ke Word
+
+            output_file = generate_word_output(data_umum, logistik_data)
             messagebox.showinfo(
                 "Berhasil", f"Data Berhasil Disimpan!\nFile: {output_file}"
             )
 
-        except Exception as e:
-            messagebox.showerror("Error", f"Gagal menyimpan file: {str(e)}")
-        # Tampilkan Message Box Konfirmasi dengan tambahan info backup
-        konfirmasi_backup = messagebox.askyesno(
-            "Konfirmasi Backup Drive",
-            "Apakah ingin Backup ke Google Drive juga?",
-        )
+            # Tampilkan Message Box Konfirmasi dengan tambahan info backup
+            konfirmasi_backup = messagebox.askyesno(
+                "Konfirmasi Backup Drive",
+                "Apakah ingin Backup ke Google Drive juga?",
+            )
 
-        if konfirmasi_backup:  # Jika user menekan 'Yes'
-            try:
-                backup_dengan_loading(output_file)
-            except Exception as e:
-                messagebox.showerror("Error", f"Gagal backup file: {str(e)}")
-        else:
-            # Jika user menekan 'No', proses dibatalkan
-            pass
+            if konfirmasi_backup:  # Jika user menekan 'Yes'
+                backup_dengan_loading(upload_to_drive, output_file)
+            else:
+                # Jika user menekan 'No', proses dibatalkan
+                pass
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Gagal: {str(e)}")
     else:
         # Jika user menekan 'No', proses dibatalkan
         pass
