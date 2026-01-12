@@ -5,7 +5,8 @@ temp_sub.docx
 .~lock*
 BA_LOGISTIK_*
 *BA*
-credentials.json
+*.json
 token.pickle
 dist
 build
+upx.exe
