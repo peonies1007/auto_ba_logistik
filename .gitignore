@@ -10,3 +10,4 @@ token.pickle
 dist
 build
 upx.exe
+myenv

@@ -73,7 +73,7 @@ def get_drive_service():
             # Kita mendapatkan URL otorisasi terlebih dahulu
             auth_url, _ = flow.authorization_url(prompt="consent")
 
-            print(f"Membuka browser untuk otorisasi...")
+            print("Membuka browser untuk otorisasi...")
             # Paksa buka di browser default (Chrome)
             webbrowser.open(auth_url)
 
@@ -110,12 +110,12 @@ def upload_to_drive(file_path):
 
 def cek_internet(host="8.8.8.8", port=53, timeout=3):
     """
-    Mengecek apakah ada koneksi internet.
+    Mengecek koneksi internet dengan cara yang lebih aman.
     """
     try:
-        # Mencoba membuat koneksi ke host
-        socket.setdefaulttimeout(timeout)
-        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
-        return True
-    except socket.error:
+        # socket.create_connection adalah cara yang lebih modern
+        # 'with' memastikan socket ditutup otomatis setelah pengecekan
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except (socket.timeout, socket.error):
         return False
