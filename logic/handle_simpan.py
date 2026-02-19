@@ -80,6 +80,13 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
             ket_raw = row["keterangan"].get()
             ket_clean = ket_raw.replace("_", " ")
 
+            if int(vol) <= 0:
+                messagebox.showwarning(
+                    "Peringatan",
+                    f"Volume untuk item '{uraian_val}' - '{ket_clean}' masih kosong!",
+                )
+                return
+
             logistik_data.append(
                 {
                     "keterangan": ket_clean,  # Ini yang akan tampil di kolom Keterangan Word
@@ -115,10 +122,10 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
     konfirmasi_lokal = messagebox.askyesno("Konfirmasi Simpan", pesan_konfirmasi)
 
     konfirmasi_sheets = True
-    if cek_internet():
-        konfirmasi_sheets = backup_dengan_loading(
-            update_logistik, data_umum, logistik_data
-        )
+    # if cek_internet() and konfirmasi_lokal:
+    #     konfirmasi_sheets = backup_dengan_loading(
+    #         update_logistik, data_umum, logistik_data
+    #     )
 
     if konfirmasi_lokal and konfirmasi_sheets:  # Jika user menekan 'Yes'
         try:
@@ -128,8 +135,9 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
             messagebox.showinfo(
                 "Berhasil", f"Data Berhasil Disimpan!\nFile: {output_file}"
             )
-            if cek_internet():
-                backup_dengan_loading(upload_to_drive, output_file)
+
+            # if cek_internet() and konfirmasi_sheets:
+            #     backup_dengan_loading(upload_to_drive, output_file)
 
         except Exception as e:
             messagebox.showerror("Error", f"Gagal: {str(e)}")

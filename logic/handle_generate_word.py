@@ -4,8 +4,11 @@ import os
 from docxcompose.composer import Composer  # Tambahkan ini
 from .logic import resource_path
 
+map_urutan = {"APBN": 0, "APBD I": 1, "APBD II": 2, "HIBAH APBN": 3, "HIBAH APBD II": 4}
+
 
 def generate_word_output(data_umum, list_logistik):
+    list_logistik.sort(key=lambda x: map_urutan.get(x["keterangan"].upper(), 100))
     # 1. Kelompokkan Logistik berdasarkan Keterangan
     grouped_logistik = {}
     for item in list_logistik:
