@@ -59,10 +59,19 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
         # 4. Masukkan ke teks dasar surat
         txt_dasar = f"hasil assessment tanggal {tgl_ass_formatted} tentang kejadian {entri['bencana'].get()}"
 
+    txt_bencana = ""
+    if (
+        entri["bencana"].get() == "Kerja Bakti"
+        or entri["bencana"].get() == "Backup Dapur Umum"
+    ):
+        txt_bencana = f"{entri['bencana'].get()}"
+    else:
+        txt_bencana = f"Santunan Korban {entri['bencana'].get()}"
+
     # Data Umum sesuai template [cite: 13, 30, 47, 64, 83, 100]
     data_umum = {
         **waktu,  # Memasukkan hari, tanggal, bulan, tahun, tanggal_lengkap
-        "bencana": entri["bencana"].get(),
+        "bencana": txt_bencana,
         "alamat_string": f"{entri['alamat_dukuh'].get()}, {entri['alamat_kel'].get()}, Kec. {entri['alamat_kec'].get()}",
         "alamat_kec": entri["alamat_kec"].get(),
         "alamat_kel": entri["alamat_kel"].get(),
@@ -102,7 +111,7 @@ def handle_simpan(v_dasar, entri, entri_kec, entri_ass, list_logistik):
         f"PERIKSA KEMBALI DATA ANDA:\n\n"
         f"--- DATA UMUM ---\n"
         f"Tanggal BA: {waktu['tanggal_lengkap']}\n"
-        f"Jenis Bencana: {data_umum['bencana']}\n"
+        f"Jenis Distribusi: {data_umum['bencana']}\n"
         f"Lokasi: {data_umum['alamat_string']}\n\n"
         f"--- DASAR SURAT ---\n"
         f"{txt_dasar}\n\n"

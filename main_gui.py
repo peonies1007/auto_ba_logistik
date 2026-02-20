@@ -3,7 +3,6 @@ from date_picker import buat_date_picker
 from data_wilayah import DATA_KECAMATAN
 import components as comp
 from logic.handle_simpan import handle_simpan
-import logic.logic_formatter as form
 import logic.logic as logic
 from data_logistik import data_logistik  # Pastikan file ini ada
 
@@ -87,7 +86,15 @@ def main():
         frame_umum,
         "Bencana",
         1,
-        ["Angin Kencang", "Tanah Longsor", "Banjir", "Kebakaran Rumah"],
+        [
+            "Angin Kencang",
+            "Tanah Longsor",
+            "Banjir",
+            "Kebakaran Rumah",
+            "Rumah Roboh",
+            "Backup Dapur Umum",
+            "Kerja Bakti",
+        ],
     )
 
     tk.Label(frame_umum, text="Alamat:", font=("Arial", 9, "bold")).grid(
