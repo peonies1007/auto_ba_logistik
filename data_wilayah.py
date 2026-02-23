@@ -189,6 +189,7 @@ DATA_KECAMATAN = [
             {"nama": "Karang Anyar", "status": "Desa"},
             {"nama": "Karangwaru", "status": "Desa"},
             {"nama": "Karangtalun", "status": "Desa"},
+            {"nama": "Karungan", "status": "Desa"},
             {"nama": "Kliwonan", "status": "Desa"},
             {"nama": "Manyarejo", "status": "Desa"},
             {"nama": "Ngasinan", "status": "Desa"},

@@ -74,6 +74,15 @@ def generate_word_output(data_umum, list_logistik):
         kode_awal_name_bulan = data_umum["bulan_int"]
 
     output_name = f"{kode_awal_name_tanggal}{kode_awal_name_bulan}-BA Logistik-{data_umum['tanggal_lengkap']}-{data_umum['alamat_kel']}-Kec. {data_umum['alamat_kec']}.docx"
+
+    counter = 1
+    while True:
+        if not os.path.exists(output_name):
+            break
+        else:
+            output_name = f"{kode_awal_name_tanggal}{kode_awal_name_bulan}-BA Logistik-{data_umum['tanggal_lengkap']}-{data_umum['alamat_kel']}-Kec. {data_umum['alamat_kec']} ({counter}).docx"
+            counter += 1
+
     composer.save(output_name)
 
     # Bersihkan file sementara
