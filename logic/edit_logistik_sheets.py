@@ -229,7 +229,7 @@ def update_logistik(data_umum, logistik_data):
     # 7. UPDATE
     worksheet.update_cell(3, target_col, "BA. ")
     worksheet.update_cell(4, target_col, data_umum["tanggal_lengkap"])
-    worksheet.update_cell(5, target_col, f"Santunan Korban {data_umum['bencana']}")
+    worksheet.update_cell(5, target_col, f"{data_umum['bencana']}")
     worksheet.update_cell(6, target_col, f"{data_umum['alamat_string']}")
 
     worksheet.update(range_name=f"{col_ba}8:{col_ba}{len(all_data)}", values=vals_ba)

@@ -33,29 +33,44 @@ def create_label_combobox(parent, label_text, row, values):
     return cb
 
 
-def create_logistik_row(parent, row_index, on_delete, data_logistik):
+def create_logistik_row(parent, row_index_grid, on_delete, data_logistik):
+    """
+    Membuat satu baris input logistik dengan kolom nomor di paling kiri.
+
+    Args:
+        parent: Widget parent (frame tabel).
+        row_index_grid: Indeks baris untuk .grid() tkinter.
+        display_number: Nomor urut yang ditampilkan (misal: 1, 2, 3).
+        on_delete: Fungsi callback untuk menghapus baris.
+        data_logistik: Dictionary data logistik.
+    """
     row_widgets = {}
 
-    # 1. Dropdown Keterangan (Sumber Dana)
+    # 0. Label Nomor (KOLOM BARU)
+    # Kita gunakan width kecil dan anchor center agar rapi
+    lbl_nomor = tk.Label(parent, text=f"{row_index_grid}.", width=3, anchor="center")
+    lbl_nomor.grid(row=row_index_grid, column=0, padx=2, pady=2)
+
+    # 1. Dropdown Keterangan (Sumber Dana) - GESER KE KOLOM 1
     keys_keterangan = list(data_logistik.keys())
     keterangan = ttk.Combobox(
         parent, values=keys_keterangan, width=15, state="readonly"
     )
-    keterangan.grid(row=row_index, column=0, padx=2, pady=2)
+    keterangan.grid(row=row_index_grid, column=1, padx=2, pady=2)
 
-    # 2. Dropdown Uraian (Nama Barang)
+    # 2. Dropdown Uraian (Nama Barang) - GESER KE KOLOM 2
     uraian = ttk.Combobox(parent, width=25, state="readonly")
-    uraian.grid(row=row_index, column=1, padx=2, pady=2)
+    uraian.grid(row=row_index_grid, column=2, padx=2, pady=2)
 
-    # 3. Spinbox Volume
+    # 3. Spinbox Volume - GESER KE KOLOM 3
     volume = tk.Spinbox(parent, from_=0, to=9999, width=7)
-    volume.grid(row=row_index, column=2, padx=2, pady=2)
+    volume.grid(row=row_index_grid, column=3, padx=2, pady=2)
 
-    # 4. Entry Satuan (Readonly karena otomatis)
+    # 4. Entry Satuan (Readonly) - GESER KE KOLOM 4
     satuan = tk.Entry(parent, width=10, state="readonly")
-    satuan.grid(row=row_index, column=3, padx=2, pady=2)
+    satuan.grid(row=row_index_grid, column=4, padx=2, pady=2)
 
-    # --- LOGIKA INTERNAL BARIS ---
+    # --- LOGIKA INTERNAL BARIS (Sama seperti sebelumnya) ---
 
     def on_keterangan_change(event):
         """Update daftar barang berdasarkan sumber dana"""
@@ -84,17 +99,20 @@ def create_logistik_row(parent, row_index, on_delete, data_logistik):
     keterangan.bind("<<ComboboxSelected>>", on_keterangan_change)
     uraian.bind("<<ComboboxSelected>>", on_uraian_change)
 
-    # Tombol Hapus
+    # Tombol Hapus - GESER KE KOLOM 5
     btn_hapus = tk.Button(
         parent,
         text="X",
         fg="white",
         bg="#f44336",
+        # Catatan: pastikan fungsi on_delete menangani penghapusan lbl_nomor juga
         command=lambda: on_delete(row_widgets),
     )
-    btn_hapus.grid(row=row_index, column=4, padx=5, pady=2)
+    btn_hapus.grid(row=row_index_grid, column=5, padx=5, pady=2)
 
+    # Simpan widget dalam dictionary (termasuk lbl_nomor agar bisa di-destroy)
     row_widgets = {
+        "lbl_nomor": lbl_nomor,
         "keterangan": keterangan,
         "uraian": uraian,
         "volume": volume,

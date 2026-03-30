@@ -100,14 +100,21 @@ def main():
     tk.Label(frame_umum, text="Alamat:", font=("Arial", 9, "bold")).grid(
         row=2, column=0, sticky="w", padx=10, pady=5
     )
+
     entri["alamat_kec"] = comp.create_label_combobox(
         frame_umum, "Kecamatan", 3, [d["kecamatan"] for d in DATA_KECAMATAN]
     )
+
     entri["alamat_kel"] = comp.create_label_combobox(
         frame_umum, "Kelurahan/Desa", 4, []
     )
 
-    # Event Binding Alamat
+    # --- KUNCI RAHASIANYA DI SINI ---
+    # Timpa status "readonly" dari components.py menjadi "normal"
+    # Ini membuat user bisa memilih dari daftar ATAU mengetik manual
+    entri["alamat_kel"].configure(state="normal")
+
+    # Event Binding Alamat (Sama seperti aslinya)
     entri["alamat_kec"].bind(
         "<<ComboboxSelected>>",
         lambda e: logic.handle_kecamatan_change(
@@ -130,7 +137,7 @@ def main():
     frame_tabel = tk.Frame(right_container)
     frame_tabel.grid(row=1, column=0, sticky="nw")
 
-    headers = ["Keterangan", "Uraian Barang", "Vol", "Satuan", "Aksi"]
+    headers = ["No.", "Keterangan", "Uraian Barang", "Vol", "Satuan", "Aksi"]
     for i, h in enumerate(headers):
         tk.Label(frame_tabel, text=h, font=("Arial", 9, "bold")).grid(
             row=0, column=i, padx=5
@@ -140,9 +147,24 @@ def main():
 
     def hapus_baris_spesifik(row_dict):
         for widget in row_dict.values():
-            widget.destroy()
+            if widget.winfo_exists():
+                widget.destroy()
+
+        # 2. Hapus dictionary baris tersebut dari list
         if row_dict in rows_logistik:
             rows_logistik.remove(row_dict)
+
+        # 3. RE-INDEXING (Update Nomor Urut)
+        # Looping ulang list yang tersisa dan update teks pada lbl_nomor
+        for index, row_data in enumerate(rows_logistik):
+            nomor_baru = index + 1
+            # Mengakses widget lbl_nomor dari dictionary dan mengubah teksnya
+            row_data["lbl_nomor"].config(text=f"{nomor_baru}.")
+
+        # for widget in row_dict.values():
+        #     widget.destroy()
+        # if row_dict in rows_logistik:
+        #     rows_logistik.remove(row_dict)
 
     def tambah_baris():
         idx = len(rows_logistik) + 1
