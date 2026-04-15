@@ -64,7 +64,7 @@ def update_logistik(data_umum, logistik_data):
     idx_nama = get_col_idx("NAMA BARANG")
     idx_total = get_col_idx("JUMLAH TOTAL")
     idx_distribusi = get_col_idx("JML PENDISTRIBUSIAN")
-    idx_stok_akhir = get_col_idx("STOK Januari 2026")
+    idx_stok_akhir = get_col_idx(f"STOK {data_umum['bulan']} 2026")
 
     # --- LOGIKA KATEGORI (SCAN SELURUH BARIS UNTUK KEAMANAN) ---
     daftar_kategori = ["HIBAH APBD II", "HIBAH APBN", "APBN", "APBD II", "APBD I"]
@@ -137,6 +137,7 @@ def update_logistik(data_umum, logistik_data):
                         dist_lama += to_num(row_curr[j])
 
                 stok_skrg = val_total - dist_lama
+
                 if qty_minta > stok_skrg:
                     errors.append(
                         f"❌ Stok {item['nama']} [{sumber_cari}] kurang! (Sisa stok: {stok_skrg}, Permintaan: {qty_minta})"
@@ -189,6 +190,7 @@ def update_logistik(data_umum, logistik_data):
         row = all_data[i]
         # Ambil nilai Nama Barang dan No (Kolom A)
         nama_val = row[idx_nama - 1].strip() if len(row) >= idx_nama else ""
+
         no_val = row[0].strip() if len(row) > 0 else ""
 
         # Jika menemukan kata kunci tanda tangan, kita berhenti
