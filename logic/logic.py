@@ -10,7 +10,7 @@ import socket
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
-from .constant import bulan_nama
+from .constant import bulan_nama, data_logistik_dummy
 
 # Tentukan scope akses: 'file' artinya aplikasi bisa melihat/mengedit file yang diunggahnya sendiri
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]
@@ -159,6 +159,8 @@ def ambil_data_spreadsheet():
     month_now = bulan_nama[datetime.now().month - 1]
 
     try:
+        if not cek_internet():
+            return True, data_logistik_dummy
         values = get_worksheet(
             month_now
         ).get_all_values()  # Ganti "April" dengan nama sheet yang sesuai
