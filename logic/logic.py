@@ -7,6 +7,10 @@ import os
 import sys
 import webbrowser
 import socket
+import gspread
+from google.oauth2.service_account import Credentials
+from datetime import datetime
+from .constant import bulan_nama
 
 # Tentukan scope akses: 'file' artinya aplikasi bisa melihat/mengedit file yang diunggahnya sendiri
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]
@@ -119,3 +123,102 @@ def cek_internet(host="8.8.8.8", port=53, timeout=3):
             return True
     except (socket.timeout, socket.error):
         return False
+
+
+def get_worksheet(bulan):
+    # 1. Get the absolute path of the current script's directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # 2. Construct the path to the parent directory by joining the current directory with '..'
+    parent_dir = os.path.normpath(os.path.join(current_dir, ".."))
+
+    # 3. Construct the full file path
+    file_path = os.path.join(parent_dir, "credentials_sheets.json")
+
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+    ]
+    creds = Credentials.from_service_account_file(file_path, scopes=scopes)
+    client = gspread.authorize(creds)
+
+    # 2. BUKA SPREADSHEET
+    url_spreadsheet = "https://docs.google.com/spreadsheets/d/17yyv8Am-WWnWxHysy3ViibSLP7fStJrmJZkseEdTmq8/edit#gid=1275974115"
+    spreadsheet = client.open_by_url(url_spreadsheet)
+
+    try:
+        worksheet = spreadsheet.worksheet(bulan)
+    except gspread.exceptions.WorksheetNotFound:
+        print(f"❌ Error: Sheet '{bulan}' tidak ditemukan!")
+        sys.exit()
+
+    return worksheet
+
+
+def ambil_data_spreadsheet():
+    month_now = bulan_nama[datetime.now().month - 1]
+
+    try:
+        values = get_worksheet(
+            month_now
+        ).get_all_values()  # Ganti "April" dengan nama sheet yang sesuai
+        header_row = values[2]
+
+        def get_col_idx(name):
+            for i, label in enumerate(header_row):
+                if name.strip().lower() in label.strip().lower():
+                    return i + 1
+            return None
+
+        if not values:
+            return False, "Data tidak ditemukan di spreadsheet."
+
+        data_bersih = []
+        sumber_diizinkan = ["APBN", "APBD I", "APBD II", "HIBAH APBN", "HIBAH APBD II"]
+        sumber_dana_aktif = None
+
+        for row in values:
+            if not row:
+                continue
+
+            # Cek Kategori Sumber Dana (Kolom A)
+            if len(row) > 0 and (len(row) == 1 or str(row[1]).strip() == ""):
+                kategori = str(row[0]).strip().upper()
+                if kategori in sumber_diizinkan:
+                    sumber_dana_aktif = kategori
+                else:
+                    sumber_dana_aktif = None
+                continue
+
+            if sumber_dana_aktif is None:
+                continue
+
+            # Pastikan minimal ada Kolom B dan C
+            if len(row) >= 3:
+                nama_barang = str(row[1]).strip()
+                satuan = str(row[2]).strip()
+
+                # Lewati header tabel
+                if nama_barang == "" or nama_barang.upper() == "NAMA BARANG":
+                    continue
+
+                # --- TRIK JITU: PADDING ARRAY ---
+                # Memaksa array 'row' agar selalu punya minimal 15 kolom.
+                # Ini mencegah error jika Google Sheets memotong kolom kanan yang kosong.
+                row_stok_akhir = get_col_idx(f"STOK {month_now} 2026")
+                row_lengkap = row + [""] * (row_stok_akhir - len(row))
+
+                # Sekarang kita bisa dengan aman mengambil Indeks ke-13
+                # (A=0, B=1, ... M=12, N=13)
+                stok_april = str(row_lengkap[row_stok_akhir - 1]).strip()
+
+                # Jika stok di Kolom N benar-benar kosong, jadikan "0"
+                if stok_april == "":
+                    stok_april = "0"
+
+                data_bersih.append([sumber_dana_aktif, nama_barang, satuan, stok_april])
+
+        return True, data_bersih
+
+    except Exception as e:
+        return False, f"Gagal mengambil data API: {str(e)}"
