@@ -127,6 +127,7 @@ def main():
             "Kerja Bakti",
         ],
     )
+    entri["bencana"].configure(state="normal")
 
     tk.Label(frame_umum, text="Alamat:", font=("Arial", 9, "bold")).grid(
         row=2, column=0, sticky="w", padx=10, pady=5

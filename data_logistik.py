@@ -18,6 +18,10 @@ data_logistik = {
         {"id": 11, "nama_barang": "Gula", "satuan": "Kg"},
         {"id": 12, "nama_barang": "Teh", "satuan": "Pack"},
         {"id": 13, "nama_barang": "Kopi", "satuan": "Bungkus"},
+        {"id": 14, "nama_barang": "Kecap", "satuan": "Botol"},
+        {"id": 15, "nama_barang": "Saos", "satuan": "Botol"},
+        {"id": 16, "nama_barang": "Air Mineral", "satuan": "Botol"},
+        {"id": 17, "nama_barang": "Selimut", "satuan": "Buah"},
     ],
     "APBD_II": [
         {"id": 1, "nama_barang": "MIE INSTAN", "satuan": "DUS"},
